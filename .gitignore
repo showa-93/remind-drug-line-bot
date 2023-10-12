@@ -19,3 +19,11 @@
 
 # Go workspace file
 go.work
+
+# Terraform files
+.terraform*
+*.tfstate*
+*.tfplan
+tmp/
+
+.env
