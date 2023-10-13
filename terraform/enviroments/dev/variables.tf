@@ -1,16 +1,13 @@
 variable "region" {
-  type    = string
-  default = "{{REGION}}"
+  type = string
 }
 
 variable "zone" {
-  type    = string
-  default = "{{ZONE}}"
+  type = string
 }
 
 variable "project" {
-  type    = string
-  default = "{{PROJECT_ID}}"
+  type = string
 }
 
 variable "api_image" {
