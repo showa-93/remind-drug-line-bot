@@ -1,58 +1,34 @@
 locals {
-  github_repository         = "showa-93/remind-drug-line-bot"
-  project_id                = "myproject"
-  region                    = "asia-northeast1"
-  terraform_service_account = "tf-exec@myproject.iam.gserviceaccount.com"
-
-  # api 有効化用
-  services = toset([                       # Workload Identity 連携用
-    "iam.googleapis.com",                  # IAM
-    "cloudresourcemanager.googleapis.com", # Resource Manager
-    "iamcredentials.googleapis.com",       # Service Account Credentials
-    "sts.googleapis.com"                   # Security Token Service API
+  services = toset([
+    "iam.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "sts.googleapis.com"
   ])
 }
 
-# provider 設定
-terraform {
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = ">= 4.0.0"
-    }
-  }
-  required_version = ">= 1.3.0"
-  backend "gcs" {
-    bucket = "myproject_terraform_tfstate"
-    prefix = "terraform/state"
-  }
-}
-
-## API の有効化(Workload Identity 用)
 resource "google_project_service" "enable_api" {
   for_each                   = local.services
-  project                    = local.project_id
+  project                    = var.project
   service                    = each.value
   disable_dependent_services = true
 }
 
-# Workload Identity Pool 設定
-resource "google_iam_workload_identity_pool" "mypool" {
+resource "google_iam_workload_identity_pool" "bot_pool" {
   provider                  = google-beta
-  project                   = local.project_id
-  workload_identity_pool_id = "mypool"
-  display_name              = "mypool"
-  description               = "GitHub Actions で使用"
+  project                   = var.project
+  workload_identity_pool_id = "botpool"
+  display_name              = "botpool"
+  description               = "For GitHub Actions"
 }
 
-# Workload Identity Provider 設定
-resource "google_iam_workload_identity_pool_provider" "myprovider" {
+resource "google_iam_workload_identity_pool_provider" "bot_provider" {
   provider                           = google-beta
-  project                            = local.project_id
-  workload_identity_pool_id          = google_iam_workload_identity_pool.mypool.workload_identity_pool_id
-  workload_identity_pool_provider_id = "myprovider"
-  display_name                       = "myprovider"
-  description                        = "GitHub Actions で使用"
+  project                            = var.project
+  workload_identity_pool_id          = google_iam_workload_identity_pool.bot_pool.workload_identity_pool_id
+  workload_identity_pool_provider_id = "botprovider"
+  display_name                       = "botprovider"
+  description                        = "For GitHub Actions"
 
   attribute_mapping = {
     "google.subject"       = "assertion.sub"
@@ -64,14 +40,12 @@ resource "google_iam_workload_identity_pool_provider" "myprovider" {
   }
 }
 
-# GitHub Actions が借用するサービスアカウント
 data "google_service_account" "terraform_sa" {
-  account_id = local.terraform_service_account
+  account_id = var.tf_service_account
 }
 
-# サービスアカウントの IAM Policy 設定と GitHub リポジトリの指定
 resource "google_service_account_iam_member" "terraform_sa" {
   service_account_id = data.google_service_account.terraform_sa.id
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.mypool.name}/attribute.repository/${local.github_repository}"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.bot_pool.name}/attribute.repository/${var.repository}"
 }

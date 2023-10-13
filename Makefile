@@ -22,4 +22,4 @@ tf-plan:
 
 tf-deploy:
 	@cd tmp/enviroments/dev; \
-	terraform apply
+	terraform apply -auto-approve

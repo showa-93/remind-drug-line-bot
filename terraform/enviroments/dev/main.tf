@@ -9,6 +9,15 @@ provider "google" {
   zone    = var.zone
 }
 
+module "workload" {
+  source             = "../../resources/workload"
+  repository         = var.tf_service_account
+  project            = var.project
+  region             = var.region
+  zone               = var.zone
+  tf_service_account = var.tf_service_account
+}
+
 module "api" {
   source     = "../../services/api"
   region     = var.region
