@@ -3,7 +3,7 @@
 おくすり飲む時間リマインダー。  
 飲むことのリマインド。リマインドの完了は体調を報告でおこなう。  
 
-![アーキテクチャ](./images/architecture.png)  
+![アーキテクチャ](./docs/images/architecture.png)  
 
 ## TODO
 
