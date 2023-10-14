@@ -10,4 +10,4 @@ sed -i -e "s/{{PROJECT_ID}}/${TF_VAR_project}/g" ./backend.tf
 sed -i \
     -e "s|{{DOCKER_REPOSITORY}}|${DOCKER_REPOSITORY}|g" \
     -e "s/{{DIGEST}}/${digest}/g" \
-    ./variables.tf
+    ./terraform.tfvars

@@ -15,13 +15,11 @@ variable "project" {
 }
 
 variable "api_image" {
-  type    = string
-  default = "{{DOCKER_REPOSITORY}}/api@{{DIGEST}}"
+  type = string
 }
 
 variable "api_domain" {
-  type    = string
-  default = "api.showa.dev"
+  type = string
 }
 
 variable "tf_service_account" {
