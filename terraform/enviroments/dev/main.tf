@@ -11,7 +11,7 @@ provider "google" {
 
 module "workload" {
   source             = "../../resources/workload"
-  repository         = var.tf_service_account
+  repository         = var.repository
   project            = var.project
   region             = var.region
   zone               = var.zone

@@ -14,10 +14,14 @@ endif
 setup:
 	go install github.com/google/ko@latest
 
-tf-plan:
+tf-init:
 	@./scripts/copy_tf.sh
 	@cd tmp/enviroments/dev; \
 	terraform init; \
+	terraform validate;
+
+tf-plan:
+	@cd tmp/enviroments/dev; \
 	terraform plan
 
 tf-deploy:
