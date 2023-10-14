@@ -1,30 +1,32 @@
 package main
 
 import (
+	"context"
 	"io"
-	"log/slog"
 	"net/http"
 	"os"
+
+	bot "github.com/showa-93/remind-drug-line-bot"
 )
 
 func main() {
-	h := slog.NewJSONHandler(os.Stdout, nil)
-	logger := slog.New(h)
-	slog.SetDefault(logger)
+	ctx := context.Background()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		bot.Info(r.Context(), "start handle")
 		b, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		slog.Info(string(b))
+		bot.Warn(r.Context(), string(b))
 		w.WriteHeader(http.StatusOK)
 	})
 
+	bot.Info(ctx, "Starting Server...")
 	port := os.Getenv("PORT")
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		slog.Error("%w", err)
+		bot.Fatal(ctx, err.Error())
 		os.Exit(1)
 	}
 }

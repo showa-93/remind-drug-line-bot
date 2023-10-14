@@ -35,6 +35,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 'Authenticate to Google Cloud'
+        id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.TF_VAR_tf_service_account }}
+          access_token_lifetime: 1200s
+          create_credentials_file: true
+
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v39
@@ -45,7 +54,7 @@ jobs:
               - go.sum
               - '**/*.go'
 
-      - uses: actions/setup-go@v4
+      - uses: ko-build/setup-ko@v0.6
       - name: 'Build and publish Go apps'
         if: steps.changed-files.outputs.go_any_changed == 'true'
         env:
