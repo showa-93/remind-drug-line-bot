@@ -16,7 +16,7 @@ variable "project" {
 
 variable "api_image" {
   type    = string
-  default = "{{DOCKER_REPOSITORY}}@{{DIGEST}}"
+  default = "{{DOCKER_REPOSITORY}}/api@{{DIGEST}}"
 }
 
 variable "api_domain" {

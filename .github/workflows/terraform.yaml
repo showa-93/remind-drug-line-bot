@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    paths:
+      - terraform/**
+      - go.mod
+      - go.sum
+      - '**/*.go'
 
 permissions:
   id-token: write
@@ -14,8 +19,43 @@ defaults:
     working-directory: ./
 
 jobs:
-  plan-workflows:
+  publish-apps:
     runs-on: ubuntu-22.04
+
+    environment: actions
+    env:
+      TZ: 'Asia/Tokyo'
+
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.21.0'
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v39
+        with:
+          files_yaml: |
+            go:
+              - go.mod
+              - go.sum
+              - '**/*.go'
+
+      - uses: actions/setup-go@v4
+      - name: 'Build and publish Go apps'
+        if: steps.changed-files.outputs.go_any_changed == 'true'
+        env:
+          KO_DOCKER_REPO: ${{ vars.DOCKER_REPOSITORY }}
+        run: ko build --base-import-paths --sbom none ./cmd/api
+
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: publish-apps
+
     environment: actions
     env:
       TZ: 'Asia/Tokyo'
@@ -27,10 +67,10 @@ jobs:
       DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - id: 'auth'
-        name: 'Authenticate to Google Cloud'
+      - name: 'Authenticate to Google Cloud'
+        id: 'auth'
         uses: 'google-github-actions/auth@v1'
         with:
           workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
@@ -46,5 +86,5 @@ jobs:
       - name: 'Terraform init'
         run: make tf-init
 
-      - name: 'Terraform plan'
-        run: make tf-plan
+      - name: 'Terraform deploy'
+        run: make tf-deploy
