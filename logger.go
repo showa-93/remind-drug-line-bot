@@ -18,9 +18,26 @@ const (
 	LevelCritical        = "CRITICAL"
 )
 
-func init() {
+func ConvertLevelToSlogLevel(level string) slog.Level {
+	switch level {
+	case LevelDebug:
+		return slog.LevelDebug
+	case LevelInfo:
+		return slog.LevelInfo
+	case LevelWarn:
+		return slog.LevelWarn
+	case LevelError:
+		return slog.LevelError
+	case LevelCritical:
+		return slog.LevelError
+	default:
+		return slog.LevelDebug
+	}
+}
+
+func InitLogger(c Config) {
 	opt := &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+		Level: ConvertLevelToSlogLevel(c.LogLevel),
 		ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
 			switch a.Key {
 			case slog.MessageKey:

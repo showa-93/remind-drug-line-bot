@@ -10,16 +10,17 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	config := bot.NewConfig()
+	bot.InitLogger(config)
 
 	wh := bot.WebhookHandler{}
 
 	r := chi.NewRouter()
 	r.Post("/webhook", wh.Post)
 
-	bot.Info(ctx, "Starting Server...")
-	port := os.Getenv("PORT")
-	if err := http.ListenAndServe(":"+port, r); err != nil {
+	ctx := context.Background()
+	bot.Info(ctx, "Starting Server... port="+config.Port)
+	if err := http.ListenAndServe(":"+config.Port, r); err != nil {
 		bot.Fatal(ctx, err.Error())
 		os.Exit(1)
 	}
