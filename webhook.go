@@ -4,11 +4,43 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 )
+
+type WebhookPayload struct {
+	Destination string  `json:"destination"`
+	Events      []Event `json:"events"`
+}
+
+type Event struct {
+	Type            string          `json:"type"`
+	Message         *Message        `json:"message,omitempty"`
+	Timestamp       int64           `json:"timestamp"`
+	Source          Source          `json:"source"`
+	ReplyToken      string          `json:"replyToken"`
+	Mode            string          `json:"mode"`
+	WebhookEventId  string          `json:"webhookEventId"`
+	DeliveryContext DeliveryContext `json:"deliveryContext"`
+}
+
+type Message struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+	Text string `json:"text,omitempty"`
+}
+
+type Source struct {
+	Type   string `json:"type"`
+	UserID string `json:"userId"`
+}
+
+type DeliveryContext struct {
+	IsRedelivery bool `json:"isRedelivery"`
+}
 
 type WebhookHandler struct {
 	c Config
@@ -27,12 +59,23 @@ func (h *WebhookHandler) Post(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	Warn(ctx, string(body))
 
 	if err := h.validateSignature(r.Header, body); err != nil {
 		Error(ctx, err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
+	}
+
+	var payload WebhookPayload
+	if err := json.Unmarshal(body, &payload); err != nil {
+		Error(ctx, err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// user id 確認
+	if len(payload.Events) > 0 {
+		Debug(ctx, payload.Events[0].Source.UserID)
 	}
 
 	w.WriteHeader(http.StatusOK)
