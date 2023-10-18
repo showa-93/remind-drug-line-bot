@@ -13,7 +13,7 @@ func main() {
 	config := bot.NewConfig()
 	bot.InitLogger(config)
 
-	wh := bot.WebhookHandler{}
+	wh := bot.NewWebhookHandler(config)
 
 	r := chi.NewRouter()
 	r.Post("/webhook", wh.Post)

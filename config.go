@@ -9,6 +9,8 @@ import (
 type Config struct {
 	Port     string `env:"PORT" envDefault:"8080"`
 	LogLevel string `env:"LOG_LEVEL" envDefault:"DEBUG"`
+
+	LineSecret string `env:"LINE_SECRET"`
 }
 
 func NewConfig() Config {
