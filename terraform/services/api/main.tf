@@ -1,3 +1,15 @@
+resource "google_secret_manager_secret" "line-secret" {
+  secret_id = "line-secret"
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+}
+
 resource "google_cloud_run_v2_service" "api" {
   name     = "api"
   location = var.region
@@ -59,3 +71,4 @@ resource "google_cloud_run_domain_mapping" "domain-mapping" {
     route_name = google_cloud_run_v2_service.api.name
   }
 }
+
