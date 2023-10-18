@@ -3,6 +3,25 @@ locals {
   env = "dev"
 }
 
+locals {
+  services = toset([
+    "cloudresourcemanager.googleapis.com",
+    "logging.googleapis.com",
+    "iam.googleapis.com",
+    "secretmanager.googleapis.com",
+    "storage.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "run.googleapis.com"
+  ])
+}
+
+resource "google_project_service" "enable_api" {
+  for_each                   = local.services
+  project                    = var.project
+  service                    = each.value
+  disable_dependent_services = true
+}
+
 provider "google" {
   project = var.project
   region  = var.region
