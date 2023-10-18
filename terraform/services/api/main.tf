@@ -1,5 +1,10 @@
 resource "google_secret_manager_secret" "line-secret" {
+  project   = var.project
   secret_id = "line-secret"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   replication {
     user_managed {
@@ -8,6 +13,11 @@ resource "google_secret_manager_secret" "line-secret" {
       }
     }
   }
+}
+
+data "google_secret_manager_secret_version_access" "line-secret-value" {
+  project = var.project
+  secret  = "line-secret"
 }
 
 resource "google_cloud_run_v2_service" "api" {
@@ -26,6 +36,11 @@ resource "google_cloud_run_v2_service" "api" {
 
     containers {
       image = var.api_image
+      env {
+        name  = "LINE_SECRET"
+        value = data.google_secret_manager_secret_version_access.line-secret-value.secret_data
+      }
+
       startup_probe {
         failure_threshold = 1
         period_seconds    = 240
