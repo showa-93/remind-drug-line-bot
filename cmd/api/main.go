@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	bot "github.com/showa-93/remind-drug-line-bot"
 )
 
@@ -16,6 +17,7 @@ func main() {
 	wh := bot.NewWebhookHandler(config)
 
 	r := chi.NewRouter()
+	r.Use(middleware.Heartbeat("/health"))
 	r.Post("/webhook", wh.Post)
 
 	ctx := context.Background()
