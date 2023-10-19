@@ -62,7 +62,7 @@ func (h *WebhookHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.validateSignature(r.Header, body); err != nil {
 		Error(ctx, err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
