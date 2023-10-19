@@ -30,6 +30,7 @@ func (w *loggingResponseWriter) Write(b []byte) (int, error) {
 }
 
 func (w *loggingResponseWriter) WriteHeader(staturCode int) {
+	w.status = staturCode
 	w.w.WriteHeader(staturCode)
 }
 
