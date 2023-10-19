@@ -19,6 +19,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(
 		bot.RequestID,
+		bot.Logging,
 		middleware.Heartbeat("/health"),
 	)
 	r.Post("/webhook", wh.Post)

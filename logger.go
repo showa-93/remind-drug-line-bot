@@ -64,7 +64,22 @@ func WithContextValueHandler(parent slog.Handler) *ContextValueHandler {
 }
 
 func (h *ContextValueHandler) Handle(ctx context.Context, record slog.Record) error {
-	record.AddAttrs(slog.String("requestId", GetRequestID(ctx)))
+	rr := GetRequestRecord(ctx)
+	rs := GetResponseRecord(ctx)
+
+	record.AddAttrs(
+		slog.String("requestId", GetRequestID(ctx)),
+		slog.Group("httpRequest",
+			slog.String("requestMethod", rr.Method),
+			slog.String("requestUrl", rr.URI),
+			slog.String("remoteIp", rr.RemoteIP),
+			slog.String("userAgent", rr.UserAgent),
+			slog.String("referrer", rr.Referrer),
+			slog.Time("requestTimestamp", rr.Time),
+			slog.Int("status", rs.StatusCode),
+			slog.Time("responseTimestamp", rs.Time),
+		),
+	)
 	return h.parent.Handle(ctx, record)
 }
 

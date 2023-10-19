@@ -2,33 +2,83 @@ package bot
 
 import (
 	"context"
+	"net"
 	"net/http"
-
-	"github.com/google/uuid"
+	"time"
 )
 
-type contextKey struct{}
-
-var requestIDKey contextKey
+type (
+	requestIDKey struct{}
+	requestKey   struct{}
+	responseKey  struct{}
+)
 
 func SetRequestID(ctx context.Context, requestID string) context.Context {
-	return context.WithValue(ctx, requestIDKey, requestID)
+	return context.WithValue(ctx, requestIDKey{}, requestID)
 }
 
 func GetRequestID(ctx context.Context) string {
-	value := ctx.Value(requestIDKey)
+	value := ctx.Value(requestIDKey{})
 	if value == nil {
 		return ""
 	}
 	return value.(string)
 }
 
-func RequestID(h http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		id := uuid.New().String()
-		ctx := SetRequestID(r.Context(), id)
-		r = r.WithContext(ctx)
-		h.ServeHTTP(w, r)
+type RequestRecord struct {
+	Host      string
+	URI       string
+	Method    string
+	RemoteIP  string
+	UserAgent string
+	Referrer  string
+	Time      time.Time
+}
+
+func SetRequestRecord(ctx context.Context, r *http.Request) context.Context {
+
+	remoteIP, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		Warn(ctx, err.Error())
+		remoteIP = ""
 	}
-	return http.HandlerFunc(fn)
+	rr := RequestRecord{
+		Host:      r.URL.Host,
+		URI:       r.RequestURI,
+		Method:    r.Method,
+		RemoteIP:  remoteIP,
+		UserAgent: r.UserAgent(),
+		Referrer:  r.Header.Get("Referer"),
+		Time:      time.Now(),
+	}
+	return context.WithValue(ctx, requestKey{}, rr)
+}
+
+func GetRequestRecord(ctx context.Context) RequestRecord {
+	value := ctx.Value(requestKey{})
+	if value == nil {
+		return RequestRecord{}
+	}
+	return value.(RequestRecord)
+}
+
+type ResponseRecord struct {
+	StatusCode int
+	Time       time.Time
+}
+
+func SetResponseRecord(ctx context.Context, statusCode int) context.Context {
+	rs := ResponseRecord{
+		StatusCode: statusCode,
+		Time:       time.Now(),
+	}
+	return context.WithValue(ctx, responseKey{}, rs)
+}
+
+func GetResponseRecord(ctx context.Context) ResponseRecord {
+	value := ctx.Value(responseKey{})
+	if value == nil {
+		return ResponseRecord{}
+	}
+	return value.(ResponseRecord)
 }
