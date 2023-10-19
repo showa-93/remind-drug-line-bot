@@ -64,6 +64,7 @@ func WithContextValueHandler(parent slog.Handler) *ContextValueHandler {
 }
 
 func (h *ContextValueHandler) Handle(ctx context.Context, record slog.Record) error {
+	record.AddAttrs(slog.String("requestId", GetRequestID(ctx)))
 	return h.parent.Handle(ctx, record)
 }
 

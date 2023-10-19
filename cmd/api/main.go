@@ -17,7 +17,10 @@ func main() {
 	wh := bot.NewWebhookHandler(config)
 
 	r := chi.NewRouter()
-	r.Use(middleware.Heartbeat("/health"))
+	r.Use(
+		bot.RequestID,
+		middleware.Heartbeat("/health"),
+	)
 	r.Post("/webhook", wh.Post)
 
 	ctx := context.Background()
