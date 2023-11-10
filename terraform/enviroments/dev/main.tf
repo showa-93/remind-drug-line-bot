@@ -11,7 +11,8 @@ locals {
     "secretmanager.googleapis.com",
     "storage.googleapis.com",
     "artifactregistry.googleapis.com",
-    "run.googleapis.com"
+    "run.googleapis.com",
+    "firestore.googleapis.com"
   ])
 }
 
@@ -35,6 +36,12 @@ module "workload" {
   region             = var.region
   zone               = var.zone
   tf_service_account = var.tf_service_account
+}
+
+module "firestore" {
+  source  = "../../resources/firestore"
+  project = var.project
+  region  = var.region
 }
 
 module "api" {
